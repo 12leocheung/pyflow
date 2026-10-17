@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -22,56 +22,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Pages
         uses: actions/configure-pages@v5
-      - name: Build site with repaired workspace layout
+      - name: Repair source and prepare Pages artifact
         run: |
-          mkdir -p _site
-          cp index.html _site/index.html
-          python3 - <<'PY'
-          from pathlib import Path
-
-          page = Path('_site/index.html')
-          html = page.read_text()
-          # Older committed HTML accidentally included unified-diff '+' prefixes
-          # on every line after the opening CSS. Strip only column-zero prefixes
-          # before publishing so they cannot render as text or invalidate selectors.
-          html = '\n'.join(line[1:] if line.startswith('+') else line for line in html.splitlines()) + '\n'
-          marker = '</style>'
-          if html.count(marker) != 1:
-              raise SystemExit('Expected exactly one inline stylesheet in index.html')
-          layout_css = '''
-          /* Keep the toolbox and editor in stable, explicit desktop tracks. */
-          .workspace{position:relative;display:grid;grid-template-columns:clamp(220px,22vw,270px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);align-items:stretch;gap:14px;padding:15px 18px 17px;min-width:0;min-height:0;overflow:hidden}
-          .sidebar{grid-column:1;grid-row:1;width:100%;min-width:0;min-height:0;max-height:none;overflow:auto}
-          .stage{grid-column:2;grid-row:1;width:100%;min-width:0;min-height:0;height:100%;position:relative}
-          .stage-head{min-width:0;flex-wrap:wrap}
-          .utility-tabs{min-width:0;flex:1 1 auto}
-          .stage-actions{flex:none}
-          .tool-view{position:absolute;top:112px;right:18px;bottom:17px;left:calc(clamp(220px,22vw,270px) + 14px + 18px);width:auto;min-width:0;min-height:0;z-index:3}
-          .tool-view[style*=\"display: flex\"]{display:flex}
-          .tool-view-grid{min-width:0}
-          @media(max-width:900px){
-            body{height:auto;min-height:100vh;overflow:auto}
-            .app{width:100%;height:auto;min-height:100vh;min-width:0;overflow:visible}
-            .topbar{min-height:60px;height:auto;flex-wrap:wrap;gap:8px;padding:8px 12px}
-            .brand{min-width:0}
-            .brand-tag,.project-name,.saved{display:none}
-            .workspace{display:flex;flex-direction:column;gap:10px;padding:10px;height:auto;min-height:calc(100vh - 60px);overflow:visible}
-            .sidebar{width:100%;max-height:min(38vh,330px);min-height:0;flex:none;overflow:auto}
-            .category{display:block;padding:8px 12px 0}
-            .tool-node{width:100%}
-            .stage{width:100%;height:min(72vh,760px);min-height:520px;flex:none}
-            .stage-head{height:auto;min-height:62px;padding:6px;gap:3px}
-            .utility-tabs{order:3;flex:1 0 100%;overflow-x:auto}
-            .stage-actions{margin-left:auto}
-            .tool-view{position:relative;inset:auto;width:100%;min-height:350px;max-height:none;flex:none;padding:12px;overflow:visible}
-            .tool-view-grid{grid-template-columns:1fr;gap:10px}
-            .tool-view-grid>[data-tool-panel],.tool-view-grid .lesson-card,.tool-view-grid .canvas-card{grid-column:1}
-            .rightcol{display:none!important}
-            .canvas-hint{display:none}
-          }
-          '''
-          page.write_text(html.replace(marker, layout_css + '\n' + marker, 1))
-          PY
+          python3 tools/repair-pages-build.py
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
