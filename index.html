@@ -169,6 +169,8 @@ document.addEventListener('pointermove',e=>{if(wireDrag){const box=canvasInner.g
 canvasInner.addEventListener('click',e=>{if(e.target===canvasInner||e.target===wires){selected=null;render();$('#explanation').innerHTML='<div class="empty-explain"><span class="empty-spark">✨</span><span>Hover over or click a node to get a friendly explanation.</span></div>'}});
 $$('.tool-node').forEach(btn=>btn.addEventListener('click',()=>addNode(btn.dataset.code.replace(/\\n/g,'\n'),btn.dataset.kind)));
 $('#loadSampleProject').onclick=()=>{snapshot();nodes=structuredClone(defaultNodes);connections=structuredClone(defaultConnections);selected=null;render();save();toast('Sample project loaded — press Run to try it')};
+$('#addFirstBlock').onclick=()=>addNode('print(\"Hello, world!\")','Output',150,100);
+$('#loadSampleProject').onclick=()=>{snapshot();nodes=structuredClone(defaultNodes);connections=structuredClone(defaultConnections);selected=null;render();save();toast('Sample project loaded — press Run to try it')};
 $('#addFirstBlock').onclick=()=>addNode('print("Hello, world!")','Output',150,100);
 $$('.category-title').forEach(button=>button.addEventListener('click',()=>{const group=button.closest('.category');const collapsed=group.classList.toggle('collapsed');button.setAttribute('aria-expanded',String(!collapsed))}));
 $('#toolboxLessonBtn').onclick=()=>$('#openLessons').click();
