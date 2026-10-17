@@ -31,6 +31,10 @@ jobs:
 
           page = Path('_site/index.html')
           html = page.read_text()
+          # Older committed HTML accidentally included unified-diff '+' prefixes
+          # on every line after the opening CSS. Strip only column-zero prefixes
+          # before publishing so they cannot render as text or invalidate selectors.
+          html = '\n'.join(line[1:] if line.startswith('+') else line for line in html.splitlines()) + '\n'
           marker = '</style>'
           if html.count(marker) != 1:
               raise SystemExit('Expected exactly one inline stylesheet in index.html')
